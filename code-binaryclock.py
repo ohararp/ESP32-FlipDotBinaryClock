@@ -676,6 +676,28 @@ def anim_demo():
     # Restore actual time
     timeUpdate(forceAll=True)
 
+def anim_debug():
+    # Debug: count 1-8 on each column separately with delay
+    # Helps identify which dots are not working
+    flipsPower(True)
+    try:
+        for col in range(4):
+            print("Debug column", col)
+            for n in range(1, 9):  # 1-8 (binary 0001 to 1000)
+                data = [0, 0, 0, 0]
+                data[col] = n
+                setFlips(data, 1, managePower=False)
+                # Format binary manually
+                b = "{:04b}".format(n)
+                print("  Col %d = %d (binary %s)" % (col, n, b))
+                time.sleep(1.0)  # 1 second per value
+            # Blank column before next
+            setFlips([0, 0, 0, 0], 1, managePower=False)
+            time.sleep(0.5)
+    finally:
+        extendFlipPowerWindow()
+    timeUpdate(forceAll=True)
+
 def anim_chase():
     # Chase pattern: light columns left-to-right
     flipsPower(True)
@@ -1213,6 +1235,12 @@ def setupWebServer(pool):
     def anim_sync_route(request: Request):
         log_action("Animation: Binary count")
         anim_sync()
+        return Response(request, body='{"ok":true}', content_type="application/json")
+
+    @server.route("/anim/debug", POST)
+    def anim_debug_route(request: Request):
+        log_action("Animation: Debug 1-8 per column")
+        anim_debug()
         return Response(request, body='{"ok":true}', content_type="application/json")
 
     return server
