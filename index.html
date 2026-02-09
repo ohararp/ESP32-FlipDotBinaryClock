@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary FlipDot Clock</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            font-size: 1.5em;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            font-size: 0.9em;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .time-display {
+            font-size: 3em;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            color: #00ff88;
+            letter-spacing: 4px;
+        }
+        .bcd-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .bcd-column {
+            background: #0f0f23;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .bcd-column .label {
+            font-size: 0.7em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .bcd-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #444;
+        }
+        .dot.on {
+            background: #ffcc00;
+            border-color: #ffaa00;
+            box-shadow: 0 0 10px #ffcc00;
+        }
+        .bcd-value {
+            font-size: 1.5em;
+            font-family: monospace;
+            color: #00d4ff;
+            margin-top: 8px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #00d4ff; color: #000; }
+        .btn-secondary { background: #444; color: #fff; }
+        .btn-warning { background: #ff9800; color: #000; }
+        .btn-success { background: #00ff88; color: #000; }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+        .status-row:last-child { border-bottom: none; }
+        .status-label { color: #888; }
+        .status-value { color: #00d4ff; font-family: monospace; }
+        .mode-toggle {
+            display: flex;
+            background: #0f0f23;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: #00d4ff;
+            color: #000;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #0f0f23;
+            color: #eee;
+            font-size: 1em;
+            margin: 10px 0;
+        }
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #222;
+        }
+        .log-ts { color: #666; margin-right: 10px; }
+        .log-msg { color: #aaa; }
+        .wifi-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .wifi-status.connected { background: #00ff88; }
+        .wifi-status.disconnected { background: #ff4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Binary FlipDot Clock</h1>
+
+        <div class="card">
+            <h2>Current Time</h2>
+            <div class="time-display" id="time">--:--:--</div>
+            <div class="bcd-grid" id="bcd-grid">
+                <div class="bcd-column">
+                    <div class="label">H1</div>
+                    <div class="bcd-dots" id="col3"></div>
+                    <div class="bcd-value" id="val3">-</div>
+                </div>
+                <div class="bcd-column">
+                    <div class="label">H2</div>
+                    <div class="bcd-dots" id="col2"></div>
+                    <div class="bcd-value" id="val2">-</div>
+                </div>
+                <div class="bcd-column">
+                    <div class="label">M1</div>
+                    <div class="bcd-dots" id="col1"></div>
+                    <div class="bcd-value" id="val1">-</div>
+                </div>
+                <div class="bcd-column">
+                    <div class="label">M2</div>
+                    <div class="bcd-dots" id="col0"></div>
+                    <div class="bcd-value" id="val0">-</div>
+                </div>
+            </div>
+            <div class="mode-toggle">
+                <button class="mode-btn" id="mode-24h" onclick="setMode('24h')">24H</button>
+                <button class="mode-btn" id="mode-12h" onclick="setMode('12h')">12H</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Time Controls</h2>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="doAction('/set_hour')">+1 Hour</button>
+                <button class="btn btn-secondary" onclick="doAction('/set_min')">+1 Min</button>
+                <button class="btn btn-primary" onclick="doAction('/refresh')">Refresh</button>
+            </div>
+            <div class="btn-row" style="margin-top: 10px;">
+                <button class="btn btn-warning" onclick="doAction('/wipe')">Wipe Display</button>
+                <button class="btn btn-success" onclick="doAction('/sync_wifi')">Sync NTP</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Animations</h2>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="doAction('/anim/demo')">Demo</button>
+                <button class="btn btn-secondary" onclick="doAction('/anim/chase')">Chase</button>
+                <button class="btn btn-secondary" onclick="doAction('/anim/chaos')">Chaos</button>
+                <button class="btn btn-secondary" onclick="doAction('/anim/sync')">Count</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Timezone</h2>
+            <select id="timezone" onchange="setTimezone()">
+                <option value="">Loading...</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <h2>Status</h2>
+            <div class="status-row">
+                <span class="status-label">WiFi</span>
+                <span class="status-value"><span class="wifi-status" id="wifi-dot"></span><span id="wifi-ssid">---</span></span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">IP Address</span>
+                <span class="status-value" id="ip-address">---</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Timezone</span>
+                <span class="status-value" id="tz-name">---</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Display Mode</span>
+                <span class="status-value" id="disp-mode">---</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Last NTP Sync</span>
+                <span class="status-value" id="last-sync">---</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Uptime</span>
+                <span class="status-value" id="uptime">---</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Free Memory</span>
+                <span class="status-value" id="free-mem">---</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Activity Log</h2>
+            <div class="log-list" id="log-list">
+                <div class="log-entry"><span class="log-msg">Loading...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize BCD dot display
+        for (let col = 0; col < 4; col++) {
+            const container = document.getElementById('col' + col);
+            for (let row = 3; row >= 0; row--) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.id = 'dot-' + col + '-' + row;
+                container.appendChild(dot);
+            }
+        }
+
+        function updateBCD(bcd) {
+            if (!bcd || bcd.length !== 4) return;
+            for (let col = 0; col < 4; col++) {
+                const val = bcd[col];
+                document.getElementById('val' + col).textContent = val;
+                for (let row = 0; row < 4; row++) {
+                    const dot = document.getElementById('dot-' + col + '-' + row);
+                    if ((val >> row) & 1) {
+                        dot.classList.add('on');
+                    } else {
+                        dot.classList.remove('on');
+                    }
+                }
+            }
+        }
+
+        function formatUptime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return h + 'h ' + m + 'm ' + s + 's';
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/status.json');
+                const data = await res.json();
+
+                document.getElementById('time').textContent = data.time;
+                updateBCD(data.current_bcd);
+
+                const wifiDot = document.getElementById('wifi-dot');
+                wifiDot.className = 'wifi-status ' + (data.wifi_connected ? 'connected' : 'disconnected');
+                document.getElementById('wifi-ssid').textContent = data.ssid || '---';
+                document.getElementById('ip-address').textContent = data.ip_address || '---';
+                document.getElementById('tz-name').textContent = data.timezone_name || data.timezone || '---';
+                document.getElementById('disp-mode').textContent = data.display_mode || '24h';
+                document.getElementById('last-sync').textContent = data.last_wifi_sync || 'Never';
+                document.getElementById('uptime').textContent = formatUptime(data.uptime_s || 0);
+                document.getElementById('free-mem').textContent = (data.free_memory || 0).toLocaleString() + ' bytes';
+
+                // Update mode toggle
+                document.getElementById('mode-24h').classList.toggle('active', data.display_mode === '24h');
+                document.getElementById('mode-12h').classList.toggle('active', data.display_mode === '12h');
+            } catch (e) {
+                console.error('Status fetch error:', e);
+            }
+        }
+
+        async function fetchLog() {
+            try {
+                const res = await fetch('/log.json');
+                const data = await res.json();
+                const list = document.getElementById('log-list');
+                list.innerHTML = '';
+                if (data.entries && data.entries.length > 0) {
+                    data.entries.forEach(entry => {
+                        const div = document.createElement('div');
+                        div.className = 'log-entry';
+                        div.innerHTML = '<span class="log-ts">' + entry.ts + '</span><span class="log-msg">' + entry.msg + '</span>';
+                        list.appendChild(div);
+                    });
+                } else {
+                    list.innerHTML = '<div class="log-entry"><span class="log-msg">No entries</span></div>';
+                }
+            } catch (e) {
+                console.error('Log fetch error:', e);
+            }
+        }
+
+        async function fetchTimezones() {
+            try {
+                const res = await fetch('/get_timezone');
+                const data = await res.json();
+                const select = document.getElementById('timezone');
+                select.innerHTML = '';
+                data.timezones.forEach(tz => {
+                    const opt = document.createElement('option');
+                    opt.value = tz.key;
+                    opt.textContent = tz.name + (tz.dst ? ' (DST)' : '');
+                    if (tz.key === data.current) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Timezone fetch error:', e);
+            }
+        }
+
+        async function doAction(url) {
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                const data = await res.json();
+                if (data.ok) {
+                    setTimeout(fetchStatus, 500);
+                    setTimeout(fetchLog, 500);
+                }
+            } catch (e) {
+                console.error('Action error:', e);
+            }
+        }
+
+        async function setMode(mode) {
+            try {
+                const res = await fetch('/set_display_mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: mode })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    setTimeout(fetchStatus, 500);
+                    setTimeout(fetchLog, 500);
+                }
+            } catch (e) {
+                console.error('Mode set error:', e);
+            }
+        }
+
+        async function setTimezone() {
+            const select = document.getElementById('timezone');
+            const tz = select.value;
+            if (!tz) return;
+            try {
+                const res = await fetch('/set_timezone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ timezone: tz })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    setTimeout(fetchStatus, 500);
+                    setTimeout(fetchLog, 500);
+                }
+            } catch (e) {
+                console.error('Timezone set error:', e);
+            }
+        }
+
+        // Initial load
+        fetchStatus();
+        fetchLog();
+        fetchTimezones();
+
+        // Auto-refresh
+        setInterval(fetchStatus, 1000);
+        setInterval(fetchLog, 5000);
+    </script>
+</body>
+</html>
