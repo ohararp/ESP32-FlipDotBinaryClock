@@ -643,11 +643,9 @@ def timeUpdate(forceAll=False):
             # Force blank first, then set time
             setFlips([0, 0, 0, 0], 1, managePower=False)
             time.sleep(flipdotDelay)
-            setFlips(data, 1, managePower=False)
-            time.sleep(flipdotDelay)
-        else:
-            # Differential update (XOR-based)
-            setFlips(data, 0, managePower=False)
+        # Always use flagXOR=1 for reliable dot updates
+        setFlips(data, 1, managePower=False)
+        time.sleep(flipdotDelay)
     finally:
         extendFlipPowerWindow()
 
