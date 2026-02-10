@@ -77,6 +77,12 @@ lastTimeShown = None
 relayPrechargeS = 0.20   # seconds to let 24V rails charge
 relayHoldS      = 0.08   # seconds to keep rails up after last flip
 
+# Configure flipdot relay control pin and return it.
+pwr = digitalio.DigitalInOut(board.IO11)
+pwr.direction = digitalio.Direction.OUTPUT
+pwr.value = False  # flipdot power OFF by default
+
+
 # Flipdot timing (seconds between actuations, allows capacitor recharge)
 flipdotDelay = 0.5
 
@@ -416,14 +422,6 @@ def setMins():
         (t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, newMins, 0, 0, 0, -1)
     )
     screenUpdate()
-
-#%%----------------------------------------------------------------------------
-def setupFlipdotPower():
-    # Configure flipdot relay control pin and return it.
-    pwr = digitalio.DigitalInOut(board.IO11)
-    pwr.direction = digitalio.Direction.OUTPUT
-    pwr.value = False  # flipdot power OFF by default
-    return pwr
 
 #%%----------------------------------------------------------------------------
 def flipsPower(on: bool):
@@ -1271,9 +1269,6 @@ syncOldTrackers()
 # Setup the Display
 [screen, timeArea, ucStatus, wifiCircle, wifiStatus, wifiAddress] = setupScreen(i2c)
 ucStatus.text = "Start Up"
-
-# Setup the Relay for the Dots
-pwr = setupFlipdotPower()
 
 # Play Startup Animation
 ucStatus.text = "Blanking Display"
