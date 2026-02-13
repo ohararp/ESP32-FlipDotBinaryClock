@@ -67,6 +67,14 @@ OE_ENABLE  = True
 OE_DISABLE = False
 oePin.value = OE_DISABLE
 
+# Clear shift registers at startup to ensure supply bits are off
+# Shift 64 bits of zeros through all 8 registers
+for _ in range(8):
+    latchPin.value = False
+    simpleio.shift_out(dataPin, clockPin, 0, msb_first=True)
+latchPin.value = True
+latchPin.value = False
+
 # Display mode: "24h" or "12h"
 display_mode = "24h"
 
