@@ -46,6 +46,8 @@ import adafruit_dotstar
 # |- GND
 
 # Use FeatherS2 SPI Port
+# NOTE: boot.py also initializes these pins to clear shift registers at earliest boot.
+# Must reinitialize here because boot.py and code.py run as separate Python sessions.
 clockPin = digitalio.DigitalInOut(board.SCK)
 dataPin = digitalio.DigitalInOut(board.IO35)
 latchPin = digitalio.DigitalInOut(board.IO37)
@@ -66,14 +68,6 @@ oePin.value = False
 OE_ENABLE  = True
 OE_DISABLE = False
 oePin.value = OE_DISABLE
-
-# Clear shift registers at startup to ensure supply bits are off
-# Shift 64 bits of zeros through all 8 registers
-for _ in range(8):
-    latchPin.value = False
-    simpleio.shift_out(dataPin, clockPin, 0, msb_first=True)
-latchPin.value = True
-latchPin.value = False
 
 # Display mode: "24h" or "12h"
 display_mode = "24h"
