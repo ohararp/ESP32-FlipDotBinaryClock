@@ -91,12 +91,14 @@ For CircuitPython 10.0.3 on the Unexpected Maker FeatherS3:
 | MOSI (Data) | IO35 (`board.IO35`) | Serial data out |
 | Latch | IO37 | Latch shift register outputs |
 | OE | IO18 | Output enable (directly controlled by IC) |
-| 24V Relay | IO11 | High-voltage power control |
+| 24V Relay | IO11* | High-voltage power control |
 | Button A | IO1 | Wipe/refresh display |
 | Button B | IO38 | +1 hour |
 | Button C | IO33 | +1 minute |
 | I2C SDA | IO8 (`board.SDA`) | OLED + RTC data |
 | I2C SCL | IO9 (`board.SCL`) | OLED + RTC clock |
+
+**\*IO11 Note:** GPIO11 is a strapping pin on ESP32-S3 with an internal pull-up during boot. For active-high relay circuits, add a **4.7K pull-down resistor** on IO11 to prevent the relay from activating during power-on.
 
 ## Web Interface
 
