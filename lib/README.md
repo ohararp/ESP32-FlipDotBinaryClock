@@ -22,7 +22,7 @@ Copy the following files/folders to this `lib/` directory:
 - `adafruit_connection_manager.mpy` - Connection pooling (dependency of adafruit_requests)
 
 ### Bus Libraries
-- `i2cdisplaybus.mpy` - I2C display bus driver (may be built-in on CP 10.x)
+- `i2cdisplaybus` - Built into CircuitPython 10.x core (no separate file needed)
 
 ## Bundle Download
 
@@ -33,15 +33,16 @@ Copy the following files/folders to this `lib/` directory:
 
 ## Verification
 
-After copying, your `lib/` folder should contain:
+Your `lib/` folder should contain:
 ```
 lib/
 ├── adafruit_connection_manager.mpy
 ├── adafruit_display_shapes/
-│   ├── __init__.mpy
+│   ├── __init__.py
 │   ├── circle.mpy
 │   ├── rect.mpy
-│   └── roundrect.mpy
+│   ├── roundrect.mpy
+│   └── ...
 ├── adafruit_display_text/
 │   ├── __init__.mpy
 │   ├── label.mpy
@@ -54,12 +55,11 @@ lib/
 │   └── ...
 ├── adafruit_ntp.mpy
 ├── adafruit_requests.mpy
-├── i2cdisplaybus.mpy (if not built-in)
 └── README.md
 ```
 
 ## Notes
 
-- Use `.mpy` compiled files for better memory efficiency
+- `.mpy` compiled files provide better memory efficiency
 - The FeatherS3 has sufficient flash for these libraries
-- Some libraries (like `i2cdisplaybus`) may be built into CircuitPython 10.x core
+- `i2cdisplaybus` is built into CircuitPython 10.x core (no separate file needed)
