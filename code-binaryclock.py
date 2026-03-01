@@ -81,10 +81,18 @@ lastTimeShown = None
 relayPrechargeS = 0.20   # seconds to let 24V rails charge
 relayHoldS      = 0.08   # seconds to keep rails up after last flip
 
-# Configure flipdot relay control pin and return it.
-pwr = digitalio.DigitalInOut(board.IO11)
+# Configure flipdot relay control pin.
+# boot.py may have kept this pin configured, so handle that case.
+pwr = None
+try:
+    pwr = digitalio.DigitalInOut(board.IO11)
+except ValueError:
+    # Pin already in use from boot.py - reset it via microcontroller
+    import microcontroller
+    microcontroller.pin.GPIO11.reset()
+    pwr = digitalio.DigitalInOut(board.IO11)
 pwr.direction = digitalio.Direction.OUTPUT
-pwr.value = False  # flipdot power OFF by default
+pwr.value = False  # flipdot power OFF by default (active-high relay)
 
 
 # Flipdot timing (seconds between actuations, allows capacitor recharge)

@@ -27,7 +27,7 @@ oePin.value = False  # OE disabled (outputs high-Z)
 # Configure 24V relay pin - ensure power is OFF
 pwr = digitalio.DigitalInOut(board.IO11)
 pwr.direction = digitalio.Direction.OUTPUT
-pwr.value = False  # Relay OFF
+pwr.value = False  # Relay OFF (active-high relay)
 
 # Clear shift registers - shift 64 bits of zeros through all 8 registers
 for _ in range(8):
@@ -36,9 +36,10 @@ for _ in range(8):
 latchPin.value = True
 latchPin.value = False
 
-# Deinit pins so code.py can reinitialize them
+# Deinit shift register pins so code.py can reinitialize them
+# NOTE: Relay pin (pwr) is NOT deinit'd - keeps driving LOW to prevent relay activation
 clockPin.deinit()
 dataPin.deinit()
 latchPin.deinit()
 oePin.deinit()
-pwr.deinit()
+# pwr stays configured as OUTPUT LOW until code.py takes over
