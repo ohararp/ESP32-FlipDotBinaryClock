@@ -113,6 +113,9 @@ LOG_MAX = 50
 start_time = 0
 last_wifi_sync_time = "Never"
 
+# Animation speed (seconds per frame) - configurable via web interface
+anim_frame_delay = 0.5  # Default 0.5 seconds between frames
+
 # HTML Dashboard - loaded from index.html file
 INDEX_HTML_FILE = "/index.html"
 
@@ -664,6 +667,7 @@ def timeUpdate(forceAll=False):
 
 #%%----------------------------------------------------------------------------
 # Animation Functions (adapted for 4x4 binary display - no motor)
+# All animations use global anim_frame_delay for timing (configurable via web)
 #%%----------------------------------------------------------------------------
 def anim_demo():
     # Demo: count through BCD digits 0-9 on each column
@@ -672,13 +676,13 @@ def anim_demo():
         # Count 0-9 on all columns simultaneously
         for n in range(10):
             setFlips([n, n, n, n], 1, managePower=False)
-            time.sleep(0.2)
+            time.sleep(anim_frame_delay)
         # Show 12:00
         setFlips(timeDisplay(12, 0, False), 1, managePower=False)
-        time.sleep(0.3)
+        time.sleep(anim_frame_delay)
         # Blank
         setFlips([0, 0, 0, 0], 1, managePower=False)
-        time.sleep(0.2)
+        time.sleep(anim_frame_delay)
     finally:
         extendFlipPowerWindow()
     # Restore actual time
@@ -698,10 +702,10 @@ def anim_debug():
                 # Format binary manually
                 b = "{:04b}".format(n)
                 print("  Col %d = %d (binary %s)" % (col, n, b))
-                time.sleep(1.0)  # 1 second per value
+                time.sleep(anim_frame_delay * 2)  # Debug uses 2x delay
             # Blank column before next
             setFlips([0, 0, 0, 0], 1, managePower=False)
-            time.sleep(0.5)
+            time.sleep(anim_frame_delay)
     finally:
         extendFlipPowerWindow()
     timeUpdate(forceAll=True)
@@ -714,16 +718,16 @@ def anim_chase():
             data = [0, 0, 0, 0]
             data[col] = 15  # All dots in column
             setFlips(data, 1, managePower=False)
-            time.sleep(0.2)
+            time.sleep(anim_frame_delay)
         # Reverse
         for col in range(3, -1, -1):
             data = [0, 0, 0, 0]
             data[col] = 15
             setFlips(data, 1, managePower=False)
-            time.sleep(0.2)
+            time.sleep(anim_frame_delay)
         # Blank
         setFlips([0, 0, 0, 0], 1, managePower=False)
-        time.sleep(0.1)
+        time.sleep(anim_frame_delay / 2)
     finally:
         extendFlipPowerWindow()
     timeUpdate(forceAll=True)
@@ -735,7 +739,7 @@ def anim_chaos():
         for _ in range(20):
             data = [r.randint(0, 15) for _ in range(4)]
             setFlips(data, 1, managePower=False)
-            time.sleep(0.08)
+            time.sleep(anim_frame_delay)
     finally:
         extendFlipPowerWindow()
     timeUpdate(forceAll=True)
@@ -746,7 +750,7 @@ def anim_sync():
     try:
         for n in range(16):
             setFlips([n, n, n, n], 1, managePower=False)
-            time.sleep(0.15)
+            time.sleep(anim_frame_delay)
         setFlips([0, 0, 0, 0], 1, managePower=False)
     finally:
         extendFlipPowerWindow()
@@ -1066,6 +1070,7 @@ def setupWebServer(pool):
             "uptime_s": get_uptime(),
             "free_memory": gc.mem_free(),
             "last_wifi_sync": last_wifi_sync_time,
+            "anim_speed": anim_frame_delay,
         }
         return Response(request, body=json.dumps(status), content_type="application/json")
 
@@ -1252,6 +1257,40 @@ def setupWebServer(pool):
         log_action("Animation: Debug 1-8 per column")
         anim_debug()
         return Response(request, body='{"ok":true}', content_type="application/json")
+
+    @server.route("/anim/speed")
+    def get_anim_speed_route(request: Request):
+        # Return current animation speed
+        return Response(
+            request,
+            body=json.dumps({"speed": anim_frame_delay}),
+            content_type="application/json"
+        )
+
+    @server.route("/anim/speed", POST)
+    def set_anim_speed_route(request: Request):
+        # Set animation speed (seconds per frame)
+        global anim_frame_delay
+        try:
+            body = request.body.decode("utf-8") if request.body else "{}"
+            data = json.loads(body)
+            new_speed = float(data.get("speed", anim_frame_delay))
+            # Clamp to reasonable range: 0.1s to 5.0s
+            new_speed = max(0.1, min(5.0, new_speed))
+            anim_frame_delay = new_speed
+            log_action("Animation speed set to %.2fs" % new_speed)
+            return Response(
+                request,
+                body=json.dumps({"ok": True, "speed": anim_frame_delay}),
+                content_type="application/json"
+            )
+        except Exception as e:
+            print("set_anim_speed error:", e)
+            return Response(
+                request,
+                body='{"ok":false,"error":"Invalid speed value"}',
+                content_type="application/json"
+            )
 
     return server
 
