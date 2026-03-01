@@ -1,6 +1,6 @@
 # ESP32 FlipDot Binary Clock
 
-A 4x4 BCD (Binary-Coded Decimal) flip-dot clock driven by an ESP32-S2/S3 Feather running CircuitPython. Displays time in binary format across 4 columns representing H1, H2, M1, M2 digits.
+A 4x4 BCD (Binary-Coded Decimal) flip-dot clock driven by an **Unexpected Maker FeatherS3** running **CircuitPython 10.0.3**. Displays time in binary format across 4 columns representing H1, H2, M1, M2 digits.
 
 ## Features
 
@@ -81,9 +81,9 @@ The original Arduino controller includes:
 - **Power**: 24V input with boost converter for flip-dot drive
 - **Interface**: Grove connectors for panel connection
 
-### ESP32 Adaptation
+### FeatherS3 Pinout
 
-For CircuitPython on ESP32-S2/S3 Feather:
+For CircuitPython 10.0.3 on the Unexpected Maker FeatherS3:
 
 | Signal | ESP32 Pin | Function |
 |--------|-----------|----------|
@@ -125,30 +125,54 @@ Access the dashboard at `http://<device-ip>/`
 
 ## Installation
 
-1. Install CircuitPython on your ESP32-S2/S3 Feather
-2. Copy required libraries to `/lib`:
-   - `adafruit_ssd1306`
-   - `adafruit_bus_device`
-   - `adafruit_httpserver`
-   - `adafruit_ntp`
-3. Create `secrets.py` with WiFi credentials:
-   ```python
-   secrets = {
-       "ssid": "YOUR_WIFI_SSID",
-       "password": "YOUR_WIFI_PASSWORD"
-   }
-   ```
-4. Copy `code-binaryclock.py` to `/code.py`
-5. Copy `index.html` to `/index.html`
-6. Power on - the clock will connect to WiFi and sync time
+### 1. Install CircuitPython
+
+Install [CircuitPython 10.0.3](https://circuitpython.org/board/unexpectedmaker_feathers3/) on your FeatherS3.
+
+### 2. Copy Libraries
+
+Copy the entire `lib/` folder from this repository to the root of your CIRCUITPY drive. See `lib/README.md` for the complete list of required libraries from the [CircuitPython Bundle](https://circuitpython.org/libraries).
+
+Required libraries:
+- `adafruit_ds3231.mpy` - RTC driver
+- `adafruit_dotstar.mpy` - Onboard LED
+- `adafruit_displayio_sh1107.mpy` - OLED display
+- `adafruit_display_text/` - Text rendering
+- `adafruit_display_shapes/` - Shape drawing
+- `adafruit_httpserver/` - Web server
+- `adafruit_requests.mpy` - HTTP client
+- `adafruit_ntp.mpy` - Time sync
+- `adafruit_connection_manager.mpy` - Connection pooling
+
+### 3. Configure WiFi
+
+Create `settings.toml` with your WiFi credentials:
+```toml
+CIRCUITPY_WIFI_SSID = "YOUR_WIFI_SSID"
+CIRCUITPY_WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
+```
+
+### 4. Copy Application Files
+
+- Copy `code-binaryclock.py` to `/code.py`
+- Copy `index.html` to `/index.html`
+- Copy `boot.py` to `/boot.py`
+
+### 5. Power On
+
+The clock will connect to WiFi and sync time via NTP automatically.
 
 ## File Structure
 
 ```
 ESP32-FlipDotBinaryClock/
-├── code-binaryclock.py   # Main CircuitPython code
+├── boot.py               # Early boot shift register clearing
+├── code-binaryclock.py   # Main CircuitPython code (copy as code.py)
 ├── index.html            # Web dashboard
-├── secrets.py            # WiFi credentials (not in repo)
+├── settings.toml         # WiFi & NTP config (create from template)
+├── lib/                  # CircuitPython libraries
+│   └── README.md         # Library installation guide
+├── Arduino/              # Original Arduino firmware (reference)
 ├── PCB/
 │   ├── FlipDotMasterC.PDF      # Controller schematic
 │   └── FlipDotBinF_Panel-*.TXT # Panel design files

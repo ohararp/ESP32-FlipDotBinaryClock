@@ -1,5 +1,6 @@
 #------------------------------------------------------------------------------
 # boot.py - Runs before code.py, before USB is configured
+# Target: Unexpected Maker FeatherS3 (ESP32-S3) + CircuitPython 10.0.3
 # Clears shift registers immediately to ensure supply bits are off
 #------------------------------------------------------------------------------
 import board

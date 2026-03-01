@@ -1,5 +1,6 @@
 #%%----------------------------------------------------------------------------
-# 4x4 Binary FlipDot Clock - CircuitPython
+# 4x4 Binary FlipDot Clock - CircuitPython 10.0.3
+# Target: Unexpected Maker FeatherS3 (ESP32-S3)
 # Adapted from circle clock for BCD time display (HH:MM format)
 #%%----------------------------------------------------------------------------
 # General Libraries
@@ -45,7 +46,7 @@ import adafruit_dotstar
 # |- SS/LATCH - SPI (IO37)
 # |- GND
 
-# Use FeatherS2 SPI Port
+# Use FeatherS3 SPI Port
 # NOTE: boot.py also initializes these pins to clear shift registers at earliest boot.
 # Must reinitialize here because boot.py and code.py run as separate Python sessions.
 clockPin = digitalio.DigitalInOut(board.SCK)
