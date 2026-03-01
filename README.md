@@ -95,8 +95,8 @@ For CircuitPython 10.0.3 on the Unexpected Maker FeatherS3:
 | Button A | IO1 | Wipe/refresh display |
 | Button B | IO38 | +1 hour |
 | Button C | IO33 | +1 minute |
-| OLED SDA | IO3 | I2C data |
-| OLED SCL | IO4 | I2C clock |
+| I2C SDA | IO8 (`board.SDA`) | OLED + RTC data |
+| I2C SCL | IO9 (`board.SCL`) | OLED + RTC clock |
 
 ## Web Interface
 
