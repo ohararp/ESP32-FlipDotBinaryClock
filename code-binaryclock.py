@@ -7,6 +7,7 @@
 import time, gc, os
 import rtc
 import board
+import busio
 import digitalio
 import displayio
 import terminalio
@@ -37,7 +38,7 @@ import microcontroller
 from adafruit_httpserver import Server, Request, Response, POST
 
 # LED Libraries
-import adafruit_dotstar
+import neopixel
 
 
 # Panel Header
@@ -386,7 +387,7 @@ def setupButton():
 
 #%%----------------------------------------------------------------------------
 def setupI2C():
-    # Initialize and return I2C bus object.
+    # Initialize and return I2C bus object using default FeatherS3 I2C pins.
     i2c = board.I2C()
     return i2c
 
@@ -745,12 +746,13 @@ def anim_sync():
 
 #%%----------------------------------------------------------------------------
 def setupDot():
-    # Initialize DotStar and define global color constants.
-    numPixels = 1
-    dotstar = adafruit_dotstar.DotStar(
-        board.APA102_SCK, board.APA102_MOSI, numPixels,
-        brightness=1.0, auto_write=True
-    )
+    # Initialize NeoPixel on FeatherS3 and define global color constants.
+    # Enable NeoPixel power on FeatherS3
+    neopixel_power = digitalio.DigitalInOut(board.NEOPIXEL_POWER)
+    neopixel_power.direction = digitalio.Direction.OUTPUT
+    neopixel_power.value = True
+
+    pixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.3, auto_write=True)
 
     global RED, YELLOW, ORANGE, GREEN, TEAL, CYAN, BLUE, PURPLE, MAGENTA, WHITE
     RED     = (255, 0, 0)
@@ -764,12 +766,13 @@ def setupDot():
     MAGENTA = (255, 0, 20)
     WHITE   = (255, 255, 255)
 
-    return dotstar
+    return pixel
 
 #%%----------------------------------------------------------------------------
 def setDotstar(color, brightness):
-    # Set DotStar color and brightness.
-    dotstar[0] = (color[0], color[1], color[2], brightness)
+    # Set NeoPixel color and brightness.
+    dotstar.brightness = brightness
+    dotstar[0] = color
 
 #%%----------------------------------------------------------------------------
 def getWifiTime():
